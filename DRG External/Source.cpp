@@ -33,7 +33,7 @@ uintptr_t getModuleBase(DWORD pID, const char* modName) {
 	return modBaseAdd;
 }
 
-void getpos(float x, float y, float z, bool b,bool c) {
+void getpos(float x, float y, float z, bool c) {
 	cout << x << endl;
 	cout << y << endl;
 	cout << z << endl;
@@ -41,10 +41,6 @@ void getpos(float x, float y, float z, bool b,bool c) {
 		cout << "Dance toggle: ON\n";
 	else
 		cout << "Dance toggle: OFF\n";
-	if (b)
-		cout << "Dancing\n";
-	else
-		cout << "Not Dancing\n";
 }
 
 uintptr_t readOffsets(uintptr_t clientBase, vector<uintptr_t> offs) {
@@ -78,18 +74,17 @@ int main() {
 	}
 	clientBase = getModuleBase(proc_id, moduleName);
 
-	bool toggle = false;
 	bool runscript = false;
 	float x, y, z;
 	float newx, newy, newz;
-	bool onoff = true;
+	bool onoff = false;
 	while (!GetAsyncKeyState(VK_DELETE))
 	{
 		ReadProcessMemory(hProc, (LPVOID)(readOffsets(clientBase, xaxis)), &x, sizeof(x), NULL);
 		ReadProcessMemory(hProc, (LPVOID)(readOffsets(clientBase, yaxis)), &y, sizeof(x), NULL);
 		ReadProcessMemory(hProc, (LPVOID)(readOffsets(clientBase, zaxis)), &z, sizeof(x), NULL);
-		ReadProcessMemory(hProc, (LPVOID)(readOffsets(clientBase, dance)), &toggle, sizeof(toggle), NULL);
-		getpos(x, y, z, toggle, onoff);
+		ReadProcessMemory(hProc, (LPVOID)(readOffsets(clientBase, dance)), &onoff, sizeof(onoff), NULL);
+		getpos(x, y, z, onoff);
 		if (GetAsyncKeyState(VK_NUMPAD1)) {
 			newx = 65;
 			newy = -35;
@@ -107,20 +102,8 @@ int main() {
 			WriteProcessMemory(hProc, (LPVOID)(readOffsets(clientBase, zaxis)), &newz, sizeof(newz), NULL);
 		}
 		if (GetAsyncKeyState(VK_NUMPAD5)) {
-			onoff = true;
-		}
-		if (GetAsyncKeyState(VK_NUMPAD6)) {
-			onoff = false;
-		}
-		if (onoff) {
-			if (!toggle) {
-				toggle = true;
-				WriteProcessMemory(hProc, (LPVOID)(readOffsets(clientBase, dance)), &toggle, sizeof(bool), NULL);
-			}
-		}
-		else {
-			toggle = false;
-			WriteProcessMemory(hProc, (LPVOID)(readOffsets(clientBase, dance)), &toggle, sizeof(bool), NULL);
+			onoff = !onoff;
+			WriteProcessMemory(hProc, (LPVOID)(readOffsets(clientBase, dance)), &onoff, sizeof(bool), NULL);
 		}
 
 		Sleep(10);
